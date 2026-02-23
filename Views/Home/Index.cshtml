@@ -27,18 +27,20 @@ tr:nth-child(even) {
   padding: 10px;
   border: 1px solid #cccccc;
   width: 300px;
-}
-
-#edit-form {
-    display: none;
+  display: none;
 }
 
 button {
-    color: white;
+  color: white;
   margin-top: 10px;
   padding: 5px 10px;
-    background-color: #4CAF50;}
+  background-color: #4CAF50;
+  cursor: pointer;
+}
 
+button:hover {
+  background-color: #45a049;
+}
 </style>
 </head>
 <body>
@@ -54,10 +56,12 @@ button {
       <th>Actions</th>
     </tr>
   </thead>
-<tbody id="fruits-table-body"></tbody>
-<button onclick="addFruit();">Add Fruit</button>
+  <tbody id="fruits-table-body"></tbody>
+</table>
 
-<div id="edit-form" >
+<button id="addFruitBtn">Add Fruit</button>
+
+<div id="edit-form">
     <h3 id="edit-title"></h3>
     <input type="hidden" id="fruit-id" name="fruit-id">
     <label for="fruit-name">Name:</label>
@@ -68,90 +72,56 @@ button {
     <input type="number" id="fruit-stock" name="fruit-stock"><br><br>
     <label for="fruit-price">Price:</label>
     <input type="number" step="0.01" id="fruit-price" name="fruit-price"><br><br>
-    <button onclick="saveData()">SAVE</button>
+    <button id="saveBtn">SAVE</button>
+    <button id="cancelBtn" style="background-color: #f44343;">CANCEL</button>
 </div>
-</table>
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
         
-        addFruit = () => {
-            const form = document.getElementById("edit-form");
+        const form = document.getElementById("edit-form");
+        const addBtn = document.getElementById("addFruitBtn");
+        const saveBtn = document.getElementById("saveBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const tableBody = document.getElementById("fruits-table-body");
+        
+        loadFruits();
+        
+        addBtn.addEventListener('click', function() {
+            
+            document.getElementById("fruit-id").value = "";
+            document.getElementById("fruit-name").value = "";
+            document.getElementById("fruit-type").value = "";
+            document.getElementById("fruit-stock").value = "";
+            document.getElementById("fruit-price").value = "";
+            
             document.getElementById("edit-title").innerText = "Add New Fruit";  
-            form.style.display = form.style.display === "none" ? "block" : "none";
-        }        
-
-        editFruit = (id) => {
-            const form = document.getElementById("edit-form");
-            document.getElementById("edit-title").innerText = "Edit Fruit";  
-            form.style.display = form.style.display === "none" ? "block" : "none";
-
-            // Fetch fruit data by ID and populate the form
-            fetch(`http://localhost:5030/edit-fruits-inventory`, {
-                method: "POST",
+            form.style.display = "block";
+        });
+        
+        cancelBtn.addEventListener('click', function() {
+            form.style.display = "none";
+        });
+        
+        saveBtn.addEventListener('click', saveData);
+        
+        function loadFruits() {
+            fetch("http://localhost:5030/fruits-inventories", {
+                method: "GET",
                 headers: {
                     "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ id: id })
-            }).then(response => response.json())
-              .then(data => {
-                  document.getElementById("fruit-id").value = data.data[0].ID;
-                  document.getElementById("fruit-name").value = data.data[0].NAME;
-                  document.getElementById("fruit-type").value = data.data[0].TYPE;
-                  document.getElementById("fruit-stock").value = data.data[0].STOCK;
-                  document.getElementById("fruit-price").value = data.data[0].PRICE;
-              })
-              .catch(error => console.error("Error fetching fruit data:", error));
-        }
-
-        saveData = () => {
-            const id = document.getElementById("fruit-id").value;
-            const name = document.getElementById("fruit-name").value;
-            const type = document.getElementById("fruit-type").value;
-            const stock = parseInt(document.getElementById("fruit-stock").value);
-            const price = parseFloat(document.getElementById("fruit-price").value);
-
-            if (id) {
-                // Update existing fruit
-                fetch(`http://localhost:5030/update-fruits-inventory/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ id, name, type, stock, price })
-                }).then(response => response.json())
-                  .then(data => {
-                      alert("Fruit updated successfully!");
-                      location.reload(); // Reload the page to show updated fruit list
-                  })
-                  .catch(error => console.error("Error updating fruit:", error));
-            } else {
-                // Add new fruit
-                fetch("http://localhost:5030/add-fruits-inventory", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ name, type, stock, price })
-                }).then(response => response.json())
-                  .then(data => {
-                      alert("Fruit added successfully!");
-                      location.reload(); // Reload the page to show updated fruit list
-                  })
-                  .catch(error => console.error("Error adding fruit:", error));
-            }
-        }
-
-        @* Fetch all data *@
-        fetch("http://localhost:5030/fruits-inventories", {
-            "method": "GET",
-            "headers": {
-                "Content-Type": "application/json"
-            }
-        }).then(
-            response => response.json()
-        ).then(
-            data => {
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
                 const fruits = data.data;
-                const tableBody = document.getElementById("fruits-table-body");
+                tableBody.innerHTML = "";
+                
                 fruits.forEach(fruit => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
@@ -160,15 +130,108 @@ button {
                         <td>${fruit.TYPE}</td>
                         <td>${fruit.STOCK}</td>
                         <td>${fruit.PRICE}</td>
-                        <td><button onclick="editFruit(${fruit.ID})">Edit</button></td>
+                        <td><button class="edit-btn" data-id="${fruit.ID}">Edit</button></td>
                     `;
                     tableBody.appendChild(row);
                 });
+                
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        editFruit(id);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching fruits inventories:", error);
+                alert("Failed to load fruits. Please check if the server is running.");
+            });
+        }
+        
+        // Edit function
+        function editFruit(id) {
+            // Show form
+            document.getElementById("edit-title").innerText = "Edit Fruit";  
+            form.style.display = "block";
+
+            // Fetch fruit data by ID
+            fetch(`http://localhost:5030/edit-fruits-inventory`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("fruit-id").value = data.data[0].ID;
+                document.getElementById("fruit-name").value = data.data[0].NAME;
+                document.getElementById("fruit-type").value = data.data[0].TYPE;
+                document.getElementById("fruit-stock").value = data.data[0].STOCK;
+                document.getElementById("fruit-price").value = data.data[0].PRICE;
+            })
+            .catch(error => {
+                console.error("Error fetching fruit data:", error);
+                alert("Failed to fetch fruit data.");
+            });
+        }
+        
+        // Save function
+        function saveData() {
+            const id = document.getElementById("fruit-id").value;
+            const name = document.getElementById("fruit-name").value;
+            const type = document.getElementById("fruit-type").value;
+            const stock = parseInt(document.getElementById("fruit-stock").value);
+            const price = parseFloat(document.getElementById("fruit-price").value);
+
+            // Validate inputs
+            if (!name || !type || !stock || !price) {
+                alert("Please fill in all fields");
+                return;
             }
-        ).catch(
-            error => console.error("Error fetching fruits inventories:", error)
-        );
-    </script>
+
+            let url, method;
+            let bodyData;
+
+            if (id) {
+                // Update existing fruit
+                url = "http://localhost:5030/update-fruits-inventory/";
+                bodyData = JSON.stringify({ id, name, type, stock, price });
+            } else {
+                // Add new fruit
+                url = "http://localhost:5030/add-fruits-inventory";
+                bodyData = JSON.stringify({ name, type, stock, price });
+            }
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: bodyData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(id ? "Fruit updated successfully!" : "Fruit added successfully!");
+                form.style.display = "none"; // Hide form
+                loadFruits(); // Reload the fruits list
+            })
+            .catch(error => {
+                console.error("Error saving fruit:", error);
+                alert("Failed to save fruit. Please try again.");
+            });
+        }
+    });
+</script>
 </body>
 </html>
-
