@@ -24,10 +24,14 @@ tr:nth-child(even) {
 
 #edit-form {
   margin-top: 20px;
-  padding: 10px;
+  padding: 20px;
   border: 1px solid #cccccc;
   width: 300px;
   display: none;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
 button {
@@ -35,11 +39,27 @@ button {
   margin-top: 10px;
   padding: 5px 10px;
   background-color: #4CAF50;
+  border: none;
+  border-radius: 3px;
   cursor: pointer;
+  margin-right: 5px;
 }
 
 button:hover {
   background-color: #45a049;
+}
+
+#cancelBtn {
+  background-color: #f44343;
+}
+
+#cancelBtn:hover {
+  background-color: #da190b;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 10px;
 }
 </style>
 </head>
@@ -72,39 +92,60 @@ button:hover {
     <input type="number" id="fruit-stock" name="fruit-stock"><br><br>
     <label for="fruit-price">Price:</label>
     <input type="number" step="0.01" id="fruit-price" name="fruit-price"><br><br>
-    <button id="saveBtn">SAVE</button>
-    <button id="cancelBtn" style="background-color: #f44343;">CANCEL</button>
+    <div class="form-buttons">
+        <button id="saveBtn">SAVE</button>
+        <button id="cancelBtn">CANCEL</button>
+    </div>
 </div>
 
 <script>
+    // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
         
+        // Get DOM elements
         const form = document.getElementById("edit-form");
         const addBtn = document.getElementById("addFruitBtn");
         const saveBtn = document.getElementById("saveBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         const tableBody = document.getElementById("fruits-table-body");
         
+        // Load all fruits on page load
         loadFruits();
         
+        // Add Fruit button click handler
         addBtn.addEventListener('click', function() {
-            
+            // Clear form
             document.getElementById("fruit-id").value = "";
             document.getElementById("fruit-name").value = "";
             document.getElementById("fruit-type").value = "";
             document.getElementById("fruit-stock").value = "";
             document.getElementById("fruit-price").value = "";
             
+            // Set title and show form
             document.getElementById("edit-title").innerText = "Add New Fruit";  
             form.style.display = "block";
+            
+            // Scroll to form smoothly
+            scrollToForm();
         });
         
+        // Cancel button click handler
         cancelBtn.addEventListener('click', function() {
             form.style.display = "none";
         });
         
+        // Save button click handler
         saveBtn.addEventListener('click', saveData);
         
+        // Function to scroll to form
+        function scrollToForm() {
+            form.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+        
+        // Function to load all fruits
         function loadFruits() {
             fetch("http://localhost:5030/fruits-inventories", {
                 method: "GET",
@@ -120,7 +161,7 @@ button:hover {
             })
             .then(data => {
                 const fruits = data.data;
-                tableBody.innerHTML = "";
+                tableBody.innerHTML = ""; // Clear existing rows
                 
                 fruits.forEach(fruit => {
                     const row = document.createElement("tr");
@@ -135,6 +176,7 @@ button:hover {
                     tableBody.appendChild(row);
                 });
                 
+                // Add event listeners to all edit buttons
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.getAttribute('data-id');
@@ -153,6 +195,9 @@ button:hover {
             // Show form
             document.getElementById("edit-title").innerText = "Edit Fruit";  
             form.style.display = "block";
+            
+            // Scroll to form smoothly
+            scrollToForm();
 
             // Fetch fruit data by ID
             fetch(`http://localhost:5030/edit-fruits-inventory`, {
@@ -225,6 +270,12 @@ button:hover {
                 alert(id ? "Fruit updated successfully!" : "Fruit added successfully!");
                 form.style.display = "none"; // Hide form
                 loadFruits(); // Reload the fruits list
+                
+                // Optional: Scroll back to top
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             })
             .catch(error => {
                 console.error("Error saving fruit:", error);
