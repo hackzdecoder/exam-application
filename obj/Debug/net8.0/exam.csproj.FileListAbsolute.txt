@@ -44,3 +44,4 @@ C:\xampp\htdocs\dotnet\exam\obj\Debug\net8.0\refint\exam.dll
 C:\xampp\htdocs\dotnet\exam\obj\Debug\net8.0\exam.pdb
 C:\xampp\htdocs\dotnet\exam\obj\Debug\net8.0\exam.genruntimeconfig.cache
 C:\xampp\htdocs\dotnet\exam\obj\Debug\net8.0\ref\exam.dll
+C:\xampp\htdocs\dotnet\Exam\obj\Debug\net8.0\exam.sourcelink.json

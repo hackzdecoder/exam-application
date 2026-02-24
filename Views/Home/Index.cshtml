@@ -147,7 +147,8 @@ button:hover {
         
         // Function to load all fruits
         function loadFruits() {
-            fetch("http://localhost:5030/fruits-inventories", {
+            @* fetch("http://localhost:5030/fruits-inventories", { *@
+            fetch("https://unconcentrative-marhta-pencillike.ngrok-free.dev/fruits-inventories", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
@@ -170,7 +171,7 @@ button:hover {
                         <td>${fruit.NAME}</td>
                         <td>${fruit.TYPE}</td>
                         <td>${fruit.STOCK}</td>
-                        <td>${fruit.PRICE}</td>
+                        <td>${parseFloat(fruit.PRICE).toFixed(2)}</td>
                         <td><button class="edit-btn" data-id="${fruit.ID}">Edit</button></td>
                     `;
                     tableBody.appendChild(row);
@@ -200,7 +201,8 @@ button:hover {
             scrollToForm();
 
             // Fetch fruit data by ID
-            fetch(`http://localhost:5030/edit-fruits-inventory`, {
+            @* fetch(`http://localhost:5030/edit-fruits-inventory`, { *@
+            fetch(`https://unconcentrative-marhta-pencillike.ngrok-free.dev/edit-fruits-inventory`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -245,11 +247,13 @@ button:hover {
 
             if (id) {
                 // Update existing fruit
-                url = "http://localhost:5030/update-fruits-inventory/";
+                @* url = "http://localhost:5030/update-fruits-inventory/"; *@
+                url = "https://unconcentrative-marhta-pencillike.ngrok-free.dev/update-fruits-inventory/";
                 bodyData = JSON.stringify({ id, name, type, stock, price });
             } else {
                 // Add new fruit
-                url = "http://localhost:5030/add-fruits-inventory";
+                @* url = "http://localhost:5030/add-fruits-inventory"; *@
+                url = "https://unconcentrative-marhta-pencillike.ngrok-free.dev/add-fruits-inventory";
                 bodyData = JSON.stringify({ name, type, stock, price });
             }
 
